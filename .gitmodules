@@ -1,0 +1,6 @@
+[submodule "andEngine"]
+	path = andEngine
+	url = https://github.com/fknittel/AndEngine.git
+[submodule "andEnginePhysicsBox2DExtension"]
+	path = andEnginePhysicsBox2DExtension
+	url = https://github.com/fknittel/AndEnginePhysicsBox2DExtension.git
