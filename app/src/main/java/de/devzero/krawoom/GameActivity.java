@@ -61,7 +61,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
     private static final int XMAX = 1920;
     private static final int YMAX = 1080;
-    private static final int INITIAL_BOBBLE_COUNT = 1;
+    private static final int INITIAL_BOBBLE_COUNT = 30;
 
     private TextureRegion mBoxFaceTextureRegion;
     private TextureRegion mCircleFaceTextureRegion;
@@ -207,13 +207,21 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             while (i.hasNext()) {
                 Body b = i.next();
 
-                // TODO: v gets overwritten if getPosition is called again !! (side effect)
-                Vector2 p = b.getPosition();
-                Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
-                        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
+                if (b.getUserData() instanceof Bobble) {
+                    // TODO: v gets overwritten if getPosition is called again !! (side effect)
+                    Vector2 p = new Vector2(((Bobble) b.getUserData()).sprite.getX(), ((Bobble) b.getUserData()).sprite.getY());
+                    Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+                    //debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
+                    //        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
 
-                b.applyLinearImpulse(v.mul(-1.0f), b.getLocalCenter());
+                    float len = v.len();
+                    len *= len;
+                    if (len > 1e-5) {
+                        v.nor().mul(10000000.0f / len);
+                        debugString = String.format("v %.2f, %.2f", v.x, v.y);
+                        b.applyLinearImpulse(v, b.getLocalCenter());
+                    }
+                }
             }
 
             return true;
