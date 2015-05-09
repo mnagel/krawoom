@@ -164,7 +164,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (this.mPhysicsWorld != null) {
             if (pSceneTouchEvent.isActionDown()) {
                 this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                    vibrator.vibrate(100);
                 return true;
             }
         }
@@ -202,6 +201,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     private void addFace(final float pX, final float pY) {
         this.bobblecount++;
+        vibrator.vibrate(100);
 
         final AnimatedSprite face;
         final Body body;
