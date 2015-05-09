@@ -248,7 +248,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         }
 
-        body.setUserData(new Bobble(face, (float)Math.random()*99+1));
+        body.setUserData(new Bobble(face, (float) Math.random() * 99 + 1));
 
         this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
 
@@ -278,21 +278,31 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
                 Fixture a = contact.getFixtureA();
                 Object o = a.getBody().getUserData();
                 if (o instanceof Bobble) {
-                    handleBobble((Bobble) o);
+                    handleBobble((Bobble) o, a.getBody());
                 }
 
                 Fixture b = contact.getFixtureB();
                 o = b.getBody().getUserData();
-                        if (o instanceof Bobble) {
-                            handleBobble((Bobble) o);
-                        }
+                if (o instanceof Bobble) {
+                    handleBobble((Bobble) o, b.getBody());
+                }
             }
 
-            private void handleBobble(Bobble b) {
+            private void handleBobble(final Bobble b, final Body body) {
                 b.health -= 1;
                 if (b.health < 0) {
-                    // TODO: die
                     b.health = 0;
+                    if (b.died) {
+                        return;
+                    }
+                    b.died = true;
+                    runOnUpdateThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScene.detachChild(b.sprite);
+                            mPhysicsWorld.destroyBody(body);
+                        }
+                    });
                 }
                 b.sprite.setColor(b.getColor());
             }
@@ -310,5 +320,4 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             }
         };
     }
-
 }

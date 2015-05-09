@@ -7,6 +7,7 @@ public class Bobble {
     final Sprite sprite;
     final float maxHealth;
     float health;
+    public boolean died;
 
     public Bobble(Sprite sprite, float maxHealth) {
         this.sprite = sprite;
