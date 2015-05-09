@@ -64,7 +64,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private Scene mScene;
 
     private Font mFont;
-    private Vibrator mVibrator;
+    private Vibrator vibrator;
 
     @Override
     public EngineOptions onCreateEngineOptions() {
@@ -72,7 +72,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         final Camera camera = new Camera(0, 0, XMAX, YMAX);
 
-        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
     }
@@ -153,7 +153,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (pSceneTouchEvent.isActionDown()) {
             final AnimatedSprite face = (AnimatedSprite) pTouchArea;
             this.jumpFace(face);
-            flingcount++;
             return true;
         }
 
@@ -165,9 +164,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (this.mPhysicsWorld != null) {
             if (pSceneTouchEvent.isActionDown()) {
                 this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                if (this.mVibrator != null) {
-                    this.mVibrator.vibrate(100);
-                }
+                    vibrator.vibrate(100);
                 return true;
             }
         }
@@ -233,5 +230,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -50, this.mGravityY * -50);
         faceBody.setLinearVelocity(velocity);
         Vector2Pool.recycle(velocity);
+
+        vibrator.vibrate(100);
+        flingcount++;
     }
 }
