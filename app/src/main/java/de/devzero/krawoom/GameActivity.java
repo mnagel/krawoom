@@ -1,6 +1,7 @@
 package de.devzero.krawoom;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.os.Vibrator;
 import android.widget.Toast;
@@ -11,6 +12,8 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -21,6 +24,8 @@ import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.AnimatedSprite;
+import org.andengine.entity.text.Text;
+import org.andengine.entity.util.FPSCounter;
 import org.andengine.entity.util.FPSLogger;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
@@ -29,6 +34,8 @@ import org.andengine.extension.physics.box2d.util.Vector2Pool;
 import org.andengine.input.sensor.acceleration.AccelerationData;
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.font.Font;
+import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
@@ -45,7 +52,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private TiledTextureRegion mBoxFaceTextureRegion;
     private TiledTextureRegion mCircleFaceTextureRegion;
 
-    private int mFaceCount = 0;
+    private int bobblecount = 0;
+    private long flingcount = 0;
 
     private PhysicsWorld mPhysicsWorld;
 
@@ -53,6 +61,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private float mGravityY;
 
     private Scene mScene;
+
+    private Font mFont;
 
     @Override
     public EngineOptions onCreateEngineOptions() {
@@ -71,6 +81,9 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mBoxFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "box.png", 0, 0, 2, 1); // 64x32
         this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "ball.png", 0, 100, 2, 1); // 64x32
         this.mBitmapTextureAtlas.load();
+
+        this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48);
+        this.mFont.load();
     }
 
     @Override
@@ -80,7 +93,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
 
         this.mScene = new Scene();
-        this.mScene.setBackground(new Background(0, 0, 0));
+        this.mScene.setBackground(new Background(0.5f, 0.5f, 0.5f));
         this.mScene.setOnSceneTouchListener(this);
 
         final VertexBufferObjectManager vertexBufferObjectManager = this.getVertexBufferObjectManager();
@@ -104,6 +117,27 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         this.mScene.setOnAreaTouchListener(this);
 
+        final FPSCounter fpsCounter = new FPSCounter();
+        this.mEngine.registerUpdateHandler(fpsCounter);
+
+        int x = 150;
+        int y = 150;
+        int xl2 = 150;
+        int yl2 = 100;
+
+        // TODO check these buffer sizes...
+        final Text elapsedText = new Text(x, y, this.mFont, "Seconds elapsed:", "Seconds elapsed: XXXXX".length(), this.getVertexBufferObjectManager());
+        final Text fpsText = new Text(xl2, yl2, this.mFont, "FPS:", "FPS: XXXXX".length(), this.getVertexBufferObjectManager());
+        this.mScene.attachChild(elapsedText);
+        this.mScene.attachChild(fpsText);
+        this.mScene.registerUpdateHandler(new TimerHandler(1 / 20.0f, true, new ITimerCallback() {
+            @Override
+            public void onTimePassed(final TimerHandler pTimerHandler) {
+                elapsedText.setText(String.format("%d~%d", flingcount, bobblecount));
+                fpsText.setText(String.format("%.2f FPS", fpsCounter.getFPS()));
+            }
+        }));
+
         return this.mScene;
     }
 
@@ -112,6 +146,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (pSceneTouchEvent.isActionDown()) {
             final AnimatedSprite face = (AnimatedSprite) pTouchArea;
             this.jumpFace(face);
+            flingcount++;
             return true;
         }
 
@@ -161,14 +196,14 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     }
 
     private void addFace(final float pX, final float pY) {
-        this.mFaceCount++;
+        this.bobblecount++;
 
         final AnimatedSprite face;
         final Body body;
 
         final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
 
-        if (this.mFaceCount % 2 == 1) {
+        if (this.bobblecount % 2 == 1) {
             face = new AnimatedSprite(pX, pY, this.mBoxFaceTextureRegion, this.getVertexBufferObjectManager());
             body = PhysicsFactory.createBoxBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         } else {
