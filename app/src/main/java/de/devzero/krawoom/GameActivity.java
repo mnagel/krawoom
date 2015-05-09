@@ -202,33 +202,38 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     @Override
     public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
         if (pSceneTouchEvent.isActionDown()) {
-            Iterator<Body> i = mPhysicsWorld.getBodies();
-
-            while (i.hasNext()) {
-                Body b = i.next();
-
-                if (b.getUserData() instanceof Bobble) {
-                    // TODO: v gets overwritten if getPosition is called again !! (side effect)
-                    Vector2 p = new Vector2(((Bobble) b.getUserData()).sprite.getX(), ((Bobble) b.getUserData()).sprite.getY());
-                    Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                    //debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
-                    //        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
-
-                    float len = v.len();
-                    len *= len;
-                    if (len > 1e-5) {
-                        v.nor().mul(10000000.0f / len);
-                        debugString = String.format("v %.2f, %.2f", v.x, v.y);
-                        b.applyLinearImpulse(v, b.getLocalCenter());
-                    }
-                }
-
-            }
+            explosion(pSceneTouchEvent);
 
             return true;
         }
 
         return false;
+    }
+
+    private void explosion(TouchEvent pSceneTouchEvent) {
+        Iterator<Body> i = mPhysicsWorld.getBodies();
+
+        while (i.hasNext()) {
+            Body b = i.next();
+
+            if (b.getUserData() instanceof Bobble) {
+                // TODO: v gets overwritten if getPosition is called again !! (side effect)
+                Vector2 p = new Vector2(((Bobble) b.getUserData()).sprite.getX(), ((Bobble) b.getUserData()).sprite.getY());
+                Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+                //debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
+                //        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
+
+                float len = v.len();
+                len *= len;
+                if (len > 1e-5) {
+                    // TODO: fix division-by-zero-like effect for small lengths
+                    v.nor().mul(10000000.0f / len);
+                    debugString = String.format("v %.2f, %.2f", v.x, v.y);
+                    b.applyLinearImpulse(v, b.getWorldCenter());
+                }
+            }
+
+        }
     }
 
     @Override
