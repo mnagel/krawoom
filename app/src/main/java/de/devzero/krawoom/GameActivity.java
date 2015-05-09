@@ -303,6 +303,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
                         public void run() {
                             mScene.detachChild(b.sprite);
                             mPhysicsWorld.destroyBody(body);
+                            mScene.unregisterTouchArea(b.sprite);
                         }
                     });
                 }
