@@ -116,6 +116,13 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, left, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, right, BodyType.StaticBody, wallFixtureDef);
 
+        int numBobbles = 50;
+        for (int i = 0; i < numBobbles; i++) {
+            float x = (float)(0.2 + 0.6 * Math.random()) * XMAX;
+            float y = (float)(0.2 + 0.6 * Math.random()) * YMAX;
+            addFace(x, y);
+        }
+
         this.mScene.attachChild(top);
         this.mScene.attachChild(bottom);
         this.mScene.attachChild(left);
@@ -162,12 +169,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
-        if (this.mPhysicsWorld != null) {
-            if (pSceneTouchEvent.isActionDown()) {
-                this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                return true;
-            }
-        }
         return false;
     }
 
@@ -200,6 +201,11 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.disableAccelerationSensor();
     }
 
+    /**
+     * spawn a new Bobble
+     * @param pX center x
+     * @param pY center y
+     */
     private void addFace(final float pX, final float pY) {
         this.bobblecount++;
         vibrator.vibrate(100);
