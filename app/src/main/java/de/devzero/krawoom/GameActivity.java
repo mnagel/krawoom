@@ -44,8 +44,9 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
-    private static final int CAMERA_WIDTH = 1024;
-    private static final int CAMERA_HEIGHT = 600;
+    // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
+    private static final int XMAX = 1920;
+    private static final int YMAX = 1080;
 
     private BitmapTextureAtlas mBitmapTextureAtlas;
 
@@ -69,11 +70,11 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     public EngineOptions onCreateEngineOptions() {
         Toast.makeText(this, "Touch the screen to add objects. Touch an object to shoot it up into the air.", Toast.LENGTH_LONG).show();
 
-        final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+        final Camera camera = new Camera(0, 0, XMAX, YMAX);
 
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
+        return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
     }
 
     @Override
@@ -100,19 +101,22 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mScene.setOnSceneTouchListener(this);
 
         final VertexBufferObjectManager vertexBufferObjectManager = this.getVertexBufferObjectManager();
-        final Rectangle ground = new Rectangle(0, CAMERA_HEIGHT - 2, CAMERA_WIDTH, 2, vertexBufferObjectManager);
-        final Rectangle roof = new Rectangle(0, 0, CAMERA_WIDTH, 2, vertexBufferObjectManager);
-        final Rectangle left = new Rectangle(0, 0, 2, CAMERA_HEIGHT, vertexBufferObjectManager);
-        final Rectangle right = new Rectangle(CAMERA_WIDTH - 2, 0, 2, CAMERA_HEIGHT, vertexBufferObjectManager);
+        int w = 10;
+
+        // overlap in corners, we dont care
+        final Rectangle top = new Rectangle(XMAX/2, YMAX-w/2, XMAX, w, vertexBufferObjectManager);
+        final Rectangle bottom = new Rectangle(XMAX/2, w/2, XMAX, w, vertexBufferObjectManager);
+        final Rectangle left = new Rectangle(w/2, YMAX/2, w, YMAX, vertexBufferObjectManager);
+        final Rectangle right = new Rectangle(XMAX-w/2, YMAX/2, w, YMAX, vertexBufferObjectManager);
 
         final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(0, 0.5f, 0.5f);
-        PhysicsFactory.createBoxBody(this.mPhysicsWorld, ground, BodyType.StaticBody, wallFixtureDef);
-        PhysicsFactory.createBoxBody(this.mPhysicsWorld, roof, BodyType.StaticBody, wallFixtureDef);
+        PhysicsFactory.createBoxBody(this.mPhysicsWorld, top, BodyType.StaticBody, wallFixtureDef);
+        PhysicsFactory.createBoxBody(this.mPhysicsWorld, bottom, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, left, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, right, BodyType.StaticBody, wallFixtureDef);
 
-        this.mScene.attachChild(ground);
-        this.mScene.attachChild(roof);
+        this.mScene.attachChild(top);
+        this.mScene.attachChild(bottom);
         this.mScene.attachChild(left);
         this.mScene.attachChild(right);
 
