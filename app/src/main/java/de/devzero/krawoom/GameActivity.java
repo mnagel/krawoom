@@ -116,7 +116,10 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     public Scene onCreateScene() {
         this.mEngine.registerUpdateHandler(new FPSLogger());
 
-        this.mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
+        this.mGravityX = 0;
+        this.mGravityY = -SensorManager.GRAVITY_EARTH;
+
+        this.mPhysicsWorld = new PhysicsWorld(new Vector2(mGravityX, mGravityY), false);
 
         this.mScene = new Scene();
         this.mScene.setBackground(new Background(Color.BLACK));
@@ -202,12 +205,12 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public void onAccelerationChanged(final AccelerationData pAccelerationData) {
-        this.mGravityX = pAccelerationData.getX();
+        /*this.mGravityX = pAccelerationData.getX();
         this.mGravityY = pAccelerationData.getY();
 
         final Vector2 gravity = Vector2Pool.obtain(this.mGravityX, this.mGravityY);
         this.mPhysicsWorld.setGravity(gravity);
-        Vector2Pool.recycle(gravity);
+        Vector2Pool.recycle(gravity);*/
     }
 
     @Override
