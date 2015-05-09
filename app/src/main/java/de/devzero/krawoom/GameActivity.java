@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.os.Vibrator;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 
@@ -246,6 +248,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         }
 
+        body.setUserData(new Bobble(face, (float)Math.random()*99+1));
+
         this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
 
         face.setColor(Color.GREEN);
@@ -270,6 +274,27 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         return new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
+
+                Fixture a = contact.getFixtureA();
+                Object o = a.getBody().getUserData();
+                if (o instanceof Bobble) {
+                    handleBobble((Bobble) o);
+                }
+
+                Fixture b = contact.getFixtureB();
+                o = b.getBody().getUserData();
+                        if (o instanceof Bobble) {
+                            handleBobble((Bobble) o);
+                        }
+            }
+
+            private void handleBobble(Bobble b) {
+                b.health -= 1;
+                if (b.health < 0) {
+                    // TODO: die
+                    b.health = 0;
+                }
+                b.sprite.setColor(b.getColor());
             }
 
             @Override
