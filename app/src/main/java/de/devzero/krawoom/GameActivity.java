@@ -11,6 +11,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 
+import org.andengine.audio.sound.Sound;
+import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
@@ -43,6 +45,9 @@ import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.adt.color.Color;
+import org.andengine.util.debug.Debug;
+
+import java.io.IOException;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
@@ -65,6 +70,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private Scene mScene;
 
     private Font mFont;
+    private Sound explosionSound;
     private Vibrator vibrator;
 
     @Override
@@ -75,7 +81,9 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
+        EngineOptions opt = new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
+        opt.getAudioOptions().setNeedsSound(true);
+        return opt;
     }
 
     @Override
@@ -89,6 +97,13 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48, Color.WHITE_ARGB_PACKED_INT);
         this.mFont.load();
+
+        SoundFactory.setAssetBasePath("sfx/");
+        try {
+            explosionSound = SoundFactory.createSoundFromAsset(this.mEngine.getSoundManager(), this, "click.wav");
+        } catch (final IOException e) {
+            Debug.e(e);
+        }
     }
 
     @Override
@@ -239,6 +254,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         Vector2Pool.recycle(velocity);
 
         vibrator.vibrate(100);
+        explosionSound.play();
         flingcount++;
     }
 }
