@@ -29,7 +29,7 @@ import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
-import org.andengine.entity.sprite.AnimatedSprite;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.entity.util.FPSCounter;
 import org.andengine.entity.util.FPSLogger;
@@ -45,7 +45,7 @@ import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
-import org.andengine.opengl.texture.region.TiledTextureRegion;
+import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.adt.color.Color;
@@ -53,17 +53,13 @@ import org.andengine.util.debug.Debug;
 
 import java.io.IOException;
 
-import java.util.Arrays;
-
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
     private static final int XMAX = 1920;
     private static final int YMAX = 1080;
 
-    private BitmapTextureAtlas mBitmapTextureAtlas;
-
-    private TiledTextureRegion mBoxFaceTextureRegion;
-    private TiledTextureRegion mCircleFaceTextureRegion;
+    private TextureRegion mBoxFaceTextureRegion;
+    private TextureRegion mCircleFaceTextureRegion;
 
     private int bobblecount = 0;
     private long flingcount = 0;
@@ -94,12 +90,12 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public void onCreateResources() {
-        // BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
+        BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
-        this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 256, 256, TextureOptions.BILINEAR);
-        this.mBoxFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "box.png", 0, 0, 2, 1); // 64x32
-        this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "ball.png", 0, 100, 2, 1); // 64x32
-        this.mBitmapTextureAtlas.load();
+        BitmapTextureAtlas mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 256, 256, TextureOptions.BILINEAR);
+        this.mBoxFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "box.png", 0, 0);
+        this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "ball.png", 0, 100);
+        mBitmapTextureAtlas.load();
 
         this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48, Color.WHITE_ARGB_PACKED_INT);
         this.mFont.load();
@@ -129,10 +125,10 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         int w = 10;
 
         // overlap in corners, we don't care
-        final Rectangle top = new Rectangle(XMAX/2, YMAX-w/2, XMAX, w, vertexBufferObjectManager);
-        final Rectangle bottom = new Rectangle(XMAX/2, w/2, XMAX, w, vertexBufferObjectManager);
-        final Rectangle left = new Rectangle(w/2, YMAX/2, w, YMAX, vertexBufferObjectManager);
-        final Rectangle right = new Rectangle(XMAX-w/2, YMAX/2, w, YMAX, vertexBufferObjectManager);
+        final Rectangle top = new Rectangle(XMAX / 2, YMAX - w / 2, XMAX, w, vertexBufferObjectManager);
+        final Rectangle bottom = new Rectangle(XMAX / 2, w / 2, XMAX, w, vertexBufferObjectManager);
+        final Rectangle left = new Rectangle(w / 2, YMAX / 2, w, YMAX, vertexBufferObjectManager);
+        final Rectangle right = new Rectangle(XMAX - w / 2, YMAX / 2, w, YMAX, vertexBufferObjectManager);
 
         final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(0, 0.5f, 0.5f);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, top, BodyType.StaticBody, wallFixtureDef);
@@ -142,8 +138,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         int numBobbles = 50;
         for (int i = 0; i < numBobbles; i++) {
-            float x = (float)(0.2 + 0.6 * Math.random()) * XMAX;
-            float y = (float)(0.2 + 0.6 * Math.random()) * YMAX;
+            float x = (float) (0.2 + 0.6 * Math.random()) * XMAX;
+            float y = (float) (0.2 + 0.6 * Math.random()) * YMAX;
             addFace(x, y);
         }
 
@@ -185,7 +181,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     @Override
     public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final ITouchArea pTouchArea, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
         if (pSceneTouchEvent.isActionDown()) {
-            final AnimatedSprite face = (AnimatedSprite) pTouchArea;
+            final Sprite face = (Sprite) pTouchArea;
             this.jumpFace(face);
             return true;
         }
@@ -229,6 +225,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     /**
      * spawn a new Bobble
+     *
      * @param pX center x
      * @param pY center y
      */
@@ -236,28 +233,28 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.bobblecount++;
         vibrator.vibrate(100);
 
-        final AnimatedSprite face;
+        final Sprite face;
         final Body body;
 
         final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
 
         if (this.bobblecount % 2 == 1) {
-            face = new AnimatedSprite(pX, pY, this.mBoxFaceTextureRegion, this.getVertexBufferObjectManager());
+            face = new Sprite(pX, pY, this.mBoxFaceTextureRegion, this.getVertexBufferObjectManager());
             body = PhysicsFactory.createBoxBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         } else {
-            face = new AnimatedSprite(pX, pY, this.mCircleFaceTextureRegion, this.getVertexBufferObjectManager());
+            face = new Sprite(pX, pY, this.mCircleFaceTextureRegion, this.getVertexBufferObjectManager());
             body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         }
 
         this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
 
-        face.animate(new long[]{200, 200}, 0, 1, true);
+        face.setColor(Color.GREEN);
         face.setUserData(body);
         this.mScene.registerTouchArea(face);
         this.mScene.attachChild(face);
     }
 
-    private void jumpFace(final AnimatedSprite face) {
+    private void jumpFace(final Sprite face) {
         final Body faceBody = (Body) face.getUserData();
 
         final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -50, this.mGravityY * -50);
