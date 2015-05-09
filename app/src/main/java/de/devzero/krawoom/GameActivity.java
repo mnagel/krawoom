@@ -32,6 +32,7 @@ import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
+import org.andengine.entity.text.TextOptions;
 import org.andengine.entity.util.FPSCounter;
 import org.andengine.entity.util.FPSLogger;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
@@ -50,15 +51,18 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.adt.align.HorizontalAlign;
 import org.andengine.util.adt.color.Color;
 import org.andengine.util.debug.Debug;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
     private static final int XMAX = 1920;
     private static final int YMAX = 1080;
+    private static final int INITIAL_BOBBLE_COUNT = 1;
 
     private TextureRegion mBoxFaceTextureRegion;
     private TextureRegion mCircleFaceTextureRegion;
@@ -76,6 +80,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private Font mFont;
     private Sound explosionSound;
     private Vibrator vibrator;
+    public static String debugString = "";
 
     @Override
     public EngineOptions onCreateEngineOptions() {
@@ -140,8 +145,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, left, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, right, BodyType.StaticBody, wallFixtureDef);
 
-        int numBobbles = 50;
-        for (int i = 0; i < numBobbles; i++) {
+        for (int i = 0; i < INITIAL_BOBBLE_COUNT; i++) {
             float x = (float) (0.2 + 0.6 * Math.random()) * XMAX;
             float y = (float) (0.2 + 0.6 * Math.random()) * YMAX;
             addFace(x, y);
@@ -165,17 +169,22 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         int y = 150;
         int xl2 = 150;
         int yl2 = 100;
+        int xl3 = 960;
+        int yl3 = 50;
 
         // TODO check these buffer sizes...
         final Text elapsedText = new Text(x, y, this.mFont, "Seconds elapsed:", "Seconds elapsed: XXXXX".length(), this.getVertexBufferObjectManager());
         final Text fpsText = new Text(xl2, yl2, this.mFont, "FPS:", "FPS: XXXXX".length(), this.getVertexBufferObjectManager());
+        final Text debugText = new Text(xl3, yl3, this.mFont, "DEBUG:", 100, new TextOptions(HorizontalAlign.LEFT), this.getVertexBufferObjectManager());
         this.mScene.attachChild(elapsedText);
         this.mScene.attachChild(fpsText);
+        this.mScene.attachChild(debugText);
         this.mScene.registerUpdateHandler(new TimerHandler(1 / 20.0f, true, new ITimerCallback() {
             @Override
             public void onTimePassed(final TimerHandler pTimerHandler) {
                 elapsedText.setText(String.format("%d~%d", flingcount, bobblecount));
                 fpsText.setText(String.format("%.2f FPS", fpsCounter.getFPS()));
+                debugText.setText(debugString);
             }
         }));
 
@@ -195,6 +204,24 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
+        if (pSceneTouchEvent.isActionDown()) {
+            Iterator<Body> i = mPhysicsWorld.getBodies();
+
+            while (i.hasNext()) {
+                Body b = i.next();
+
+                // TODO: v gets overwritten if getPosition is called again !! (side effect)
+                Vector2 p = b.getPosition();
+                Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+                debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
+                        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
+
+                b.applyLinearImpulse(v.mul(-1.0f), b.getLocalCenter());
+            }
+
+            return true;
+        }
+
         return false;
     }
 
