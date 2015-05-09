@@ -42,6 +42,7 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.adt.color.Color;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
@@ -86,7 +87,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "ball.png", 0, 100, 2, 1); // 64x32
         this.mBitmapTextureAtlas.load();
 
-        this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48);
+        this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48, Color.WHITE_ARGB_PACKED_INT);
         this.mFont.load();
     }
 
@@ -97,7 +98,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
 
         this.mScene = new Scene();
-        this.mScene.setBackground(new Background(0.5f, 0.5f, 0.5f));
+        this.mScene.setBackground(new Background(Color.BLACK));
         this.mScene.setOnSceneTouchListener(this);
 
         final VertexBufferObjectManager vertexBufferObjectManager = this.getVertexBufferObjectManager();
