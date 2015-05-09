@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.os.Vibrator;
-import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -84,8 +83,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public EngineOptions onCreateEngineOptions() {
-        Toast.makeText(this, "Touch the screen to add objects. Touch an object to shoot it up into the air.", Toast.LENGTH_LONG).show();
-
         final Camera camera = new Camera(0, 0, XMAX, YMAX);
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
