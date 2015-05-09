@@ -61,7 +61,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
     private static final int XMAX = 1920;
     private static final int YMAX = 1080;
-    private static final int INITIAL_BOBBLE_COUNT = 30;
+    private static final int INITIAL_BOBBLE_COUNT = 50;
 
     private TextureRegion mBoxFaceTextureRegion;
     private TextureRegion mCircleFaceTextureRegion;
@@ -222,6 +222,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
                         b.applyLinearImpulse(v, b.getLocalCenter());
                     }
                 }
+
             }
 
             return true;
@@ -282,7 +283,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         }
 
-        body.setUserData(new Bobble(face, (float) Math.random() * 99 + 1));
+        body.setUserData(new Bobble(face, (float) Math.random() * 500 + 1500));
 
         this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
 
@@ -295,7 +296,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private void jumpFace(final Sprite face) {
         final Body faceBody = (Body) face.getUserData();
 
-        final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -50, this.mGravityY * -50);
+        final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -7, this.mGravityY * -7);
         faceBody.setLinearVelocity(velocity);
         Vector2Pool.recycle(velocity);
 
@@ -308,22 +309,10 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         return new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
-
-                Fixture a = contact.getFixtureA();
-                Object o = a.getBody().getUserData();
-                if (o instanceof Bobble) {
-                    handleBobble((Bobble) o, a.getBody());
-                }
-
-                Fixture b = contact.getFixtureB();
-                o = b.getBody().getUserData();
-                if (o instanceof Bobble) {
-                    handleBobble((Bobble) o, b.getBody());
-                }
             }
 
-            private void handleBobble(final Bobble b, final Body body) {
-                b.health -= 1;
+            private void handleBobble(final Bobble b, final Body body, float impulse) {
+                b.health -= impulse;
                 if (b.health < 0) {
                     b.health = 0;
                     if (b.died) {
@@ -352,6 +341,24 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
+                float[] impulses = impulse.getNormalImpulses();
+                float amount = (float) Math.sqrt(Math.pow(impulses[0], 2) + Math.pow(impulses[1], 2)) - 500;
+                if (amount < 0) {
+                    // This is abysmal impulse, so ignore it. (Vector length is squared, hence bigger than normal.)
+                    return;
+                }
+
+                Fixture a = contact.getFixtureA();
+                Object o = a.getBody().getUserData();
+                if (o instanceof Bobble) {
+                    handleBobble((Bobble) o, a.getBody(), amount);
+                }
+
+                Fixture b = contact.getFixtureB();
+                o = b.getBody().getUserData();
+                if (o instanceof Bobble) {
+                    handleBobble((Bobble) o, b.getBody(), amount);
+                }
             }
         };
     }
