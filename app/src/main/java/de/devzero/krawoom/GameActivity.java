@@ -54,11 +54,15 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     private Scene mScene;
 
+    private Vibrator mVibrator;
+
     @Override
     public EngineOptions onCreateEngineOptions() {
         Toast.makeText(this, "Touch the screen to add objects. Touch an object to shoot it up into the air.", Toast.LENGTH_LONG).show();
 
         final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
     }
@@ -123,8 +127,9 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (this.mPhysicsWorld != null) {
             if (pSceneTouchEvent.isActionDown()) {
                 this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(100);
+                if (this.mVibrator != null) {
+                    this.mVibrator.vibrate(100);
+                }
                 return true;
             }
         }
