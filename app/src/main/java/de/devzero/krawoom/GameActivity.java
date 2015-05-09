@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.os.Vibrator;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
@@ -42,6 +41,7 @@ import org.andengine.extension.physics.box2d.util.Vector2Pool;
 import org.andengine.input.sensor.acceleration.AccelerationData;
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.controller.MultiTouchController;
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.TextureOptions;
@@ -112,6 +112,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public Scene onCreateScene() {
+        mEngine.setTouchController(new MultiTouchController());
+
         this.mEngine.registerUpdateHandler(new FPSLogger());
 
         this.mGravityX = 0;
@@ -248,7 +250,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
         }
 
-        body.setUserData(new Bobble(face, (float)Math.random()*99+1));
+        body.setUserData(new Bobble(face, (float) Math.random() * 99 + 1));
 
         this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
 
@@ -283,9 +285,9 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
                 Fixture b = contact.getFixtureB();
                 o = b.getBody().getUserData();
-                        if (o instanceof Bobble) {
-                            handleBobble((Bobble) o);
-                        }
+                if (o instanceof Bobble) {
+                    handleBobble((Bobble) o);
+                }
             }
 
             private void handleBobble(Bobble b) {
