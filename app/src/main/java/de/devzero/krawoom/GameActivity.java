@@ -15,6 +15,8 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 
+import org.andengine.audio.sound.Sound;
+import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
@@ -46,6 +48,10 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.adt.color.Color;
+import org.andengine.util.debug.Debug;
+
+import java.io.IOException;
 
 import java.util.Arrays;
 
@@ -70,7 +76,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private Scene mScene;
 
     private Font mFont;
-    private Vibrator mVibrator;
+    private Sound explosionSound;
+    private Vibrator vibrator;
 
     @Override
     public EngineOptions onCreateEngineOptions() {
@@ -78,9 +85,11 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         final Camera camera = new Camera(0, 0, XMAX, YMAX);
 
-        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
+        EngineOptions opt = new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(XMAX, YMAX), camera);
+        opt.getAudioOptions().setNeedsSound(true);
+        return opt;
     }
 
     @Override
@@ -92,8 +101,15 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "ball.png", 0, 100, 2, 1); // 64x32
         this.mBitmapTextureAtlas.load();
 
-        this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48);
+        this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48, Color.WHITE_ARGB_PACKED_INT);
         this.mFont.load();
+
+        SoundFactory.setAssetBasePath("sfx/");
+        try {
+            explosionSound = SoundFactory.createSoundFromAsset(this.mEngine.getSoundManager(), this, "click.wav");
+        } catch (final IOException e) {
+            Debug.e(e);
+        }
     }
 
     @Override
@@ -103,7 +119,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
 
         this.mScene = new Scene();
-        this.mScene.setBackground(new Background(0.5f, 0.5f, 0.5f));
+        this.mScene.setBackground(new Background(Color.BLACK));
         this.mScene.setOnSceneTouchListener(this);
 
         final VertexBufferObjectManager vertexBufferObjectManager = this.getVertexBufferObjectManager();
@@ -120,6 +136,13 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, bottom, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, left, BodyType.StaticBody, wallFixtureDef);
         PhysicsFactory.createBoxBody(this.mPhysicsWorld, right, BodyType.StaticBody, wallFixtureDef);
+
+        int numBobbles = 50;
+        for (int i = 0; i < numBobbles; i++) {
+            float x = (float)(0.2 + 0.6 * Math.random()) * XMAX;
+            float y = (float)(0.2 + 0.6 * Math.random()) * YMAX;
+            addFace(x, y);
+        }
 
         this.mScene.attachChild(top);
         this.mScene.attachChild(bottom);
@@ -161,7 +184,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (pSceneTouchEvent.isActionDown()) {
             final AnimatedSprite face = (AnimatedSprite) pTouchArea;
             this.jumpFace(face);
-            flingcount++;
             return true;
         }
 
@@ -170,15 +192,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
-        if (this.mPhysicsWorld != null) {
-            if (pSceneTouchEvent.isActionDown()) {
-                this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-                if (this.mVibrator != null) {
-                    this.mVibrator.vibrate(100);
-                }
-                return true;
-            }
-        }
         return false;
     }
 
@@ -211,8 +224,14 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.disableAccelerationSensor();
     }
 
+    /**
+     * spawn a new Bobble
+     * @param pX center x
+     * @param pY center y
+     */
     private void addFace(final float pX, final float pY) {
         this.bobblecount++;
+        vibrator.vibrate(100);
 
         final AnimatedSprite face;
         final Body body;
@@ -241,6 +260,10 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -50, this.mGravityY * -50);
         faceBody.setLinearVelocity(velocity);
         Vector2Pool.recycle(velocity);
+
+        vibrator.vibrate(100);
+        explosionSound.play();
+        flingcount++;
     }
 
     private ContactListener createContactListener() {
