@@ -1,6 +1,8 @@
 package de.devzero.krawoom;
 
+import android.content.Context;
 import android.hardware.SensorManager;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
@@ -121,6 +123,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (this.mPhysicsWorld != null) {
             if (pSceneTouchEvent.isActionDown()) {
                 this.addFace(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                v.vibrate(100);
                 return true;
             }
         }
