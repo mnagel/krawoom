@@ -9,7 +9,11 @@ import android.widget.Toast;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.timer.ITimerCallback;
@@ -42,6 +46,8 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+
+import java.util.Arrays;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
@@ -103,7 +109,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         final VertexBufferObjectManager vertexBufferObjectManager = this.getVertexBufferObjectManager();
         int w = 10;
 
-        // overlap in corners, we dont care
+        // overlap in corners, we don't care
         final Rectangle top = new Rectangle(XMAX/2, YMAX-w/2, XMAX, w, vertexBufferObjectManager);
         final Rectangle bottom = new Rectangle(XMAX/2, w/2, XMAX, w, vertexBufferObjectManager);
         final Rectangle left = new Rectangle(w/2, YMAX/2, w, YMAX, vertexBufferObjectManager);
@@ -119,6 +125,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mScene.attachChild(bottom);
         this.mScene.attachChild(left);
         this.mScene.attachChild(right);
+
+        this.mPhysicsWorld.setContactListener(createContactListener());
 
         this.mScene.registerUpdateHandler(this.mPhysicsWorld);
 
@@ -234,4 +242,25 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         faceBody.setLinearVelocity(velocity);
         Vector2Pool.recycle(velocity);
     }
+
+    private ContactListener createContactListener() {
+        return new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+            }
+        };
+    }
+
 }
