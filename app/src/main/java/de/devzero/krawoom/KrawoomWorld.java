@@ -9,12 +9,14 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.input.touch.TouchEvent;
 import org.andengine.util.adt.color.Color;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import de.devzero.krawoom.bobbles.Bobble;
+import de.devzero.krawoom.bobbles.CircleBobble;
+import de.devzero.krawoom.bobbles.SquareBobble;
 
 // TODO rausfinden, was die Abgrenzung zur GameActivity darstellt
 
@@ -47,6 +49,7 @@ public class KrawoomWorld {
 
         final Sprite face;
         final Body body;
+        Bobble b;
 
         final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
 
@@ -54,13 +57,15 @@ public class KrawoomWorld {
             // TODO totally bad style to access the handheld device here
             face = new Sprite(pX, pY, handheldDevice.mBoxFaceTextureRegion, handheldDevice.getVertexBufferObjectManager());
             body = PhysicsFactory.createBoxBody(box2d, face, BodyDef.BodyType.DynamicBody, objectFixtureDef);
+            b = new SquareBobble(this, body, face, (float) Math.random() * 500 + 1500);
         } else {
             // TODO totally bad style to access the handheld device here
             face = new Sprite(pX, pY, handheldDevice.mCircleFaceTextureRegion, handheldDevice.getVertexBufferObjectManager());
             body = PhysicsFactory.createCircleBody(box2d, face, BodyDef.BodyType.DynamicBody, objectFixtureDef);
+            b = new CircleBobble(this, body, face, (float) Math.random() * 500 + 1500);
         }
 
-        Bobble b = new Bobble(this, body, face, (float) Math.random() * 500 + 1500);
+
         bobbles.add(b);
         body.setUserData(b);
         face.setUserData(b);

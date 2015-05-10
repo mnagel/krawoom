@@ -1,18 +1,19 @@
-package de.devzero.krawoom;
+package de.devzero.krawoom.bobbles;
 
 import com.badlogic.gdx.physics.box2d.Body;
 
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.util.adt.color.Color;
 
+import de.devzero.krawoom.KrawoomWorld;
 import de.devzero.krawoom.utils.ColorUtils;
 
-public class Bobble {
-    final Sprite face;
-    final Body body;
+public abstract class Bobble {
+    final public Sprite face;
+    final public Body body;
     final KrawoomWorld world;
     final float maxHealth;
-    float health;
+    public float health;
     public boolean died;
 
     public Bobble(KrawoomWorld world, Body body, Sprite face, float maxHealth) {

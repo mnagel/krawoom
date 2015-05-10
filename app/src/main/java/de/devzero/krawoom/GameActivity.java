@@ -2,7 +2,6 @@ package de.devzero.krawoom;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.hardware.SensorManager;
 import android.os.Vibrator;
 
 import com.badlogic.gdx.math.Vector2;
@@ -53,6 +52,8 @@ import org.andengine.util.adt.color.Color;
 import org.andengine.util.debug.Debug;
 
 import java.io.IOException;
+
+import de.devzero.krawoom.bobbles.Bobble;
 
 public class GameActivity extends SimpleBaseGameActivity implements IAccelerationListener, IOnSceneTouchListener, IOnAreaTouchListener {
     // THESE ARE ABSOLUTE CONSTANTS! SCALING TO DEVICE SCREEN SIZES HAPPENS ONE LAYER DOWN!
