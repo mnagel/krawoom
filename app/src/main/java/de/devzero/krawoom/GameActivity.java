@@ -34,10 +34,8 @@ import org.andengine.entity.text.Text;
 import org.andengine.entity.text.TextOptions;
 import org.andengine.entity.util.FPSCounter;
 import org.andengine.entity.util.FPSLogger;
-import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.extension.physics.box2d.util.Vector2Pool;
 import org.andengine.input.sensor.acceleration.AccelerationData;
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.input.touch.TouchEvent;
@@ -63,18 +61,14 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private static final int YMAX = 1080;
     private static final int INITIAL_BOBBLE_COUNT = 50;
 
-    private TextureRegion mBoxFaceTextureRegion;
-    private TextureRegion mCircleFaceTextureRegion;
+    public TextureRegion mBoxFaceTextureRegion;
+    public TextureRegion mCircleFaceTextureRegion;
 
-    private int bobblecount = 0;
-    private long flingcount = 0;
-
+    private KrawoomWorld krawoomWorld;
     private PhysicsWorld mPhysicsWorld;
 
-    private float mGravityX;
-    private float mGravityY;
 
-    private Scene mScene;
+    public Scene mScene;
 
     private Font mFont;
     private Sound explosionSound;
@@ -118,10 +112,12 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
         this.mEngine.registerUpdateHandler(new FPSLogger());
 
-        this.mGravityX = 0;
-        this.mGravityY = -SensorManager.GRAVITY_EARTH;
+        float mGravityX = 0;
+        float mGravityY = -SensorManager.GRAVITY_EARTH;
+        Vector2 grav = new Vector2(mGravityX, mGravityY);
 
-        this.mPhysicsWorld = new PhysicsWorld(new Vector2(mGravityX, mGravityY), false);
+        this.mPhysicsWorld = new PhysicsWorld(grav, false);
+        krawoomWorld = new KrawoomWorld(this, mPhysicsWorld, grav);
 
         this.mScene = new Scene();
         this.mScene.setBackground(new Background(Color.BLACK));
@@ -145,7 +141,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         for (int i = 0; i < INITIAL_BOBBLE_COUNT; i++) {
             float x = (float) (0.2 + 0.6 * Math.random()) * XMAX;
             float y = (float) (0.2 + 0.6 * Math.random()) * YMAX;
-            addFace(x, y);
+            krawoomWorld.spawnBobble(x, y);
         }
 
         this.mScene.attachChild(top);
@@ -179,7 +175,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mScene.registerUpdateHandler(new TimerHandler(1 / 20.0f, true, new ITimerCallback() {
             @Override
             public void onTimePassed(final TimerHandler pTimerHandler) {
-                elapsedText.setText(String.format("%d~%d", flingcount, bobblecount));
+                elapsedText.setText(String.format("%d~%d", krawoomWorld.flingcount, krawoomWorld.bobblecount));
                 fpsText.setText(String.format("%.2f FPS", fpsCounter.getFPS()));
                 debugText.setText(debugString);
             }
@@ -188,11 +184,27 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         return this.mScene;
     }
 
+    public void vibrate(int ms) {
+        vibrator.vibrate(ms);
+    }
+
+    // TODO better handle sound Ids
+    public void playSound(String soundId) {
+        switch (soundId) {
+            case "explosion": explosionSound.play(); return;
+            default: return;
+        }
+    }
+
     @Override
     public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final ITouchArea pTouchArea, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
         if (pSceneTouchEvent.isActionDown()) {
             final Sprite face = (Sprite) pTouchArea;
-            this.jumpFace(face);
+            Object o = face.getUserData();
+            this.debugString = o.getClass().toString();
+            if (o instanceof Bobble) {
+                ((Bobble) o).jump();
+            }
             return true;
         }
 
@@ -218,7 +230,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
             if (b.getUserData() instanceof Bobble) {
                 // TODO: v gets overwritten if getPosition is called again !! (side effect)
-                Vector2 p = new Vector2(((Bobble) b.getUserData()).sprite.getX(), ((Bobble) b.getUserData()).sprite.getY());
+                Vector2 p = new Vector2(((Bobble) b.getUserData()).face.getX(), ((Bobble) b.getUserData()).face.getY());
                 Vector2 v = p.cpy().sub(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
                 //debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
                 //        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
@@ -265,51 +277,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.disableAccelerationSensor();
     }
 
-    /**
-     * spawn a new Bobble
-     *
-     * @param pX center x
-     * @param pY center y
-     */
-    private void addFace(final float pX, final float pY) {
-        this.bobblecount++;
-        vibrator.vibrate(100);
-
-        final Sprite face;
-        final Body body;
-
-        final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
-
-        if (this.bobblecount % 2 == 1) {
-            face = new Sprite(pX, pY, this.mBoxFaceTextureRegion, this.getVertexBufferObjectManager());
-            body = PhysicsFactory.createBoxBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
-        } else {
-            face = new Sprite(pX, pY, this.mCircleFaceTextureRegion, this.getVertexBufferObjectManager());
-            body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, face, BodyType.DynamicBody, objectFixtureDef);
-        }
-
-        body.setUserData(new Bobble(face, (float) Math.random() * 500 + 1500));
-
-        this.mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(face, body, true, true));
-
-        face.setColor(Color.GREEN);
-        face.setUserData(body);
-        this.mScene.registerTouchArea(face);
-        this.mScene.attachChild(face);
-    }
-
-    private void jumpFace(final Sprite face) {
-        final Body faceBody = (Body) face.getUserData();
-
-        final Vector2 velocity = Vector2Pool.obtain(this.mGravityX * -7, this.mGravityY * -7);
-        faceBody.setLinearVelocity(velocity);
-        Vector2Pool.recycle(velocity);
-
-        vibrator.vibrate(100);
-        explosionSound.play();
-        flingcount++;
-    }
-
     private ContactListener createContactListener() {
         return new ContactListener() {
             @Override
@@ -327,13 +294,13 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
                     runOnUpdateThread(new Runnable() {
                         @Override
                         public void run() {
-                            mScene.detachChild(b.sprite);
+                            mScene.detachChild(b.face);
                             mPhysicsWorld.destroyBody(body);
-                            mScene.unregisterTouchArea(b.sprite);
+                            mScene.unregisterTouchArea(b.face);
                         }
                     });
                 }
-                b.sprite.setColor(b.getColor());
+                b.face.setColor(b.getColor());
             }
 
             @Override
