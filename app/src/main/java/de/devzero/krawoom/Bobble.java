@@ -33,6 +33,11 @@ public class Bobble {
     }
 
     public void jump() {
+        float x = face.getX();
+        float y = face.getY();
+        world.explosion(x, y);
+        if (1==1) return;
+
         // TODO remove dependency from world here
         // TODO dont set velocity, apply impulse!
         body.setLinearVelocity(world.gravity.cpy().mul(-7f));
