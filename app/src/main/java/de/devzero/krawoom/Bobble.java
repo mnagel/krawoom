@@ -5,6 +5,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.util.adt.color.Color;
 
+import de.devzero.krawoom.utils.ColorUtils;
+
 public class Bobble {
     final Sprite face;
     final Body body;
@@ -28,8 +30,8 @@ public class Bobble {
     }
 
     public Color getColor() {
-        // TODO: HSV und buffer color
-        return new Color(1 - getRelativeHealth(), getRelativeHealth(), 0, 0.8f);
+        // 0 degrees is red, 120 degrees is green
+        return ColorUtils.HSVtoRGB(getRelativeHealth() * 120, 0.99f, 0.99f);
     }
 
     public void jump() {
