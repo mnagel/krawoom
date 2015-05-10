@@ -166,8 +166,8 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         int yl3 = 50;
 
         // TODO check these buffer sizes...
-        final Text elapsedText = new Text(x, y, this.mFont, "Seconds elapsed:", "Seconds elapsed: XXXXX".length(), this.getVertexBufferObjectManager());
-        final Text fpsText = new Text(xl2, yl2, this.mFont, "FPS:", "FPS: XXXXX".length(), this.getVertexBufferObjectManager());
+        final Text elapsedText = new Text(x, y, this.mFont, "Seconds elapsed:", 100, this.getVertexBufferObjectManager());
+        final Text fpsText = new Text(xl2, yl2, this.mFont, "FPS:", 100, this.getVertexBufferObjectManager());
         final Text debugText = new Text(xl3, yl3, this.mFont, "DEBUG:", 100, new TextOptions(HorizontalAlign.LEFT), this.getVertexBufferObjectManager());
         this.mScene.attachChild(elapsedText);
         this.mScene.attachChild(fpsText);
@@ -175,7 +175,12 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mScene.registerUpdateHandler(new TimerHandler(1 / 20.0f, true, new ITimerCallback() {
             @Override
             public void onTimePassed(final TimerHandler pTimerHandler) {
-                elapsedText.setText(String.format("%d~%d", krawoomWorld.flingcount, krawoomWorld.bobblecount));
+                // elapsedText.setText(String.format("%d~%d", krawoomWorld.flingcount, krawoomWorld.bobblecount));
+                // TODO listener statt polling bei jedem tick...
+                float good = krawoomWorld.getGoodHP() / 100;
+                float bad = krawoomWorld.getBadHP() / 100;
+                // TODO hp scaling...
+                elapsedText.setText(String.format("%.2f", good-bad)); // (%.2f-%.2f)", good-bad, good, bad));
                 fpsText.setText(String.format("%.2f FPS", fpsCounter.getFPS()));
                 debugText.setText(debugString);
             }

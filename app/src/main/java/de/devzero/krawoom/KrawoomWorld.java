@@ -109,6 +109,30 @@ public class KrawoomWorld {
         }
     }
 
+    public float getGoodHP() {
+        // TODO java 8 and lambdas... count-if...
+
+        float result = 0;
+        for (Bobble b: bobbles) {
+            if (b instanceof SquareBobble) {
+                result += b.health;
+            }
+        }
+        return result;
+    }
+
+    public float getBadHP() {
+        // TODO java 8 and lambdas... count-if...
+
+        float result = 0;
+        for (Bobble b: bobbles) {
+            if (b instanceof CircleBobble) {
+                result += b.health;
+            }
+        }
+        return result;
+    }
+
     public void informDeath(final Bobble b) {
         bobbles.remove(b);
         // TODO viel zu starke Kopplung mit handheldDevice
