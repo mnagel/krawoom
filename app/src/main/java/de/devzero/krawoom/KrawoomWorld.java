@@ -83,6 +83,8 @@ public class KrawoomWorld {
     }
 
     void explosion(float px, float py) {
+        vibrate(30);
+        playSound("explosion");
         for (Bobble b: bobbles) {
             Vector2 p = new Vector2(b.face.getX(), b.face.getY());
             Vector2 t = new Vector2(px, py);

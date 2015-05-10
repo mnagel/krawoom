@@ -44,7 +44,7 @@ public class Bobble {
 
         // TODO implement directed pressschlag instead of upwards jump
 
-        world.vibrate(100);
+        world.vibrate(10);
         // TODO better manage sound ids
         world.playSound("explosion");
         // todo remove inverse dependency
