@@ -112,7 +112,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         this.mEngine.registerUpdateHandler(new FPSLogger());
 
         float mGravityX = 0;
-        float mGravityY = -SensorManager.GRAVITY_EARTH;
+        float mGravityY = 0; // -SensorManager.GRAVITY_EARTH;
         Vector2 grav = new Vector2(mGravityX, mGravityY);
 
         this.mPhysicsWorld = new PhysicsWorld(grav, false);
