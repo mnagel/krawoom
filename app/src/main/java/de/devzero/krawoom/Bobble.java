@@ -45,4 +45,24 @@ public class Bobble {
         // todo remove inverse dependency
         world.flingcount++;
     }
+
+    public void takeDamage(float dmg) {
+        health -= dmg;
+        if (health < 0) {
+            die();
+        }
+        face.setColor(getColor());
+    }
+
+    public void die() {
+        // always set to 0, takeDamage might have subtracted even if died==true
+        health = 0;
+        if (died) {
+            return;
+        }
+        died = true;
+
+        world.informDeath(this);
+        world.vibrate(100);
+    }
 }

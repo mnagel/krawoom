@@ -100,4 +100,17 @@ public class KrawoomWorld {
             }
         }
     }
+
+    public void informDeath(final Bobble b) {
+        bobbles.remove(b);
+        // TODO viel zu starke Kopplung mit handheldDevice
+        handheldDevice.runOnUpdateThread(new Runnable() {
+            @Override
+            public void run() {
+                box2d.destroyBody(b.body);
+                handheldDevice.mScene.detachChild(b.face);
+                handheldDevice.mScene.unregisterTouchArea(b.face);
+            }
+        });
+    }
 }

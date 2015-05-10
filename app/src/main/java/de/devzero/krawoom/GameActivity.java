@@ -257,23 +257,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             }
 
             private void handleBobble(final Bobble b, final Body body, float impulse) {
-                b.health -= impulse;
-                if (b.health < 0) {
-                    b.health = 0;
-                    if (b.died) {
-                        return;
-                    }
-                    b.died = true;
-                    runOnUpdateThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mScene.detachChild(b.face);
-                            mPhysicsWorld.destroyBody(body);
-                            mScene.unregisterTouchArea(b.face);
-                        }
-                    });
-                }
-                b.face.setColor(b.getColor());
+                b.takeDamage(impulse);
             }
 
             @Override
