@@ -200,7 +200,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
         if (pSceneTouchEvent.isActionDown()) {
             final Sprite face = (Sprite) pTouchArea;
             Object o = face.getUserData();
-            this.debugString = o.getClass().toString();
+            //this.debugString = o.getClass().toString();
             if (o instanceof Bobble) {
                 ((Bobble) o).jump();
             }

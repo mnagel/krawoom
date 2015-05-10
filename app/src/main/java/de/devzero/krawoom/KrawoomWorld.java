@@ -82,7 +82,8 @@ public class KrawoomWorld {
         handheldDevice.playSound(soundId);
     }
 
-    void explosion(float px, float py) {
+    public void explosion(float px, float py) {
+        handheldDevice.debugString = String.format("ex at %.2f %.2f", px, py);
         vibrate(30);
         playSound("explosion");
         for (Bobble b: bobbles) {
@@ -97,7 +98,7 @@ public class KrawoomWorld {
             if (len > 1e-5) {
                 // TODO: fix division-by-zero-like effect for small lengths
                 v.nor().mul(10000000.0f / len);
-                GameActivity.debugString = String.format("v %.2f, %.2f", v.x, v.y);
+                //GameActivity.debugString = String.format("v %.2f, %.2f", v.x, v.y);
                 b.body.applyLinearImpulse(v, b.body.getWorldCenter());
             }
         }
