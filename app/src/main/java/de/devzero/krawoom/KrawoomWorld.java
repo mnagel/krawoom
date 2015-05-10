@@ -9,9 +9,11 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
+import org.andengine.input.touch.TouchEvent;
 import org.andengine.util.adt.color.Color;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 // TODO rausfinden, was die Abgrenzung zur GameActivity darstellt
@@ -78,5 +80,24 @@ public class KrawoomWorld {
 
     public void playSound(String soundId) {
         handheldDevice.playSound(soundId);
+    }
+
+    void explosion(float px, float py) {
+        for (Bobble b: bobbles) {
+            Vector2 p = new Vector2(b.face.getX(), b.face.getY());
+            Vector2 t = new Vector2(px, py);
+            Vector2 v = p.sub(t);
+            //debugString = String.format("v %.2f, %.2f, t %.2f, %.2f, b %.2f, %.2f",
+            //        v.x, v.y, pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), p.x, p.y);
+
+            float len = v.len();
+            len *= len;
+            if (len > 1e-5) {
+                // TODO: fix division-by-zero-like effect for small lengths
+                v.nor().mul(10000000.0f / len);
+                GameActivity.debugString = String.format("v %.2f, %.2f", v.x, v.y);
+                b.body.applyLinearImpulse(v, b.body.getWorldCenter());
+            }
+        }
     }
 }
