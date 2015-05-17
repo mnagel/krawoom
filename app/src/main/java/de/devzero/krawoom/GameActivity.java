@@ -60,20 +60,16 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     private static final int XMAX = 1920;
     private static final int YMAX = 1080;
     private static final int INITIAL_BOBBLE_COUNT = 50;
-
+    public static String debugString = "";
     public TextureRegion mBoxFaceTextureRegion;
     public TextureRegion mCircleFaceTextureRegion;
-
+    public TextureRegion mExplosionFaceTextureRegion;
+    public Scene mScene;
     private KrawoomWorld krawoomWorld;
     private PhysicsWorld mPhysicsWorld;
-
-
-    public Scene mScene;
-
     private Font mFont;
     private Sound explosionSound;
     private Vibrator vibrator;
-    public static String debugString = "";
 
     @Override
     public EngineOptions onCreateEngineOptions() {
@@ -90,9 +86,11 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     public void onCreateResources() {
         BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
-        BitmapTextureAtlas mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 256, 256, TextureOptions.BILINEAR);
+        BitmapTextureAtlas mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 512, 1024, TextureOptions.BILINEAR);
         this.mBoxFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "box.png", 0, 0);
-        this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "ball.png", 0, 100);
+        this.mCircleFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "ball.png", 100, 0);
+        this.mExplosionFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "explosion.png", 0, 100);
+
         mBitmapTextureAtlas.load();
 
         this.mFont = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, TextureOptions.BILINEAR, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 48, Color.WHITE_ARGB_PACKED_INT);
@@ -180,7 +178,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
                 float good = krawoomWorld.getGoodHP() / 100;
                 float bad = krawoomWorld.getBadHP() / 100;
                 // TODO hp scaling...
-                elapsedText.setText(String.format("%.2f", good-bad)); // (%.2f-%.2f)", good-bad, good, bad));
+                elapsedText.setText(String.format("%.2f", good - bad)); // (%.2f-%.2f)", good-bad, good, bad));
                 fpsText.setText(String.format("%.2f FPS", fpsCounter.getFPS()));
                 debugText.setText(debugString);
             }
@@ -196,8 +194,11 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     // TODO better handle sound Ids
     public void playSound(String soundId) {
         switch (soundId) {
-            case "explosion": explosionSound.play(); return;
-            default: return;
+            case "explosion":
+                explosionSound.play();
+                return;
+            default:
+                return;
         }
     }
 
@@ -209,6 +210,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
             //this.debugString = o.getClass().toString();
             if (o instanceof Bobble) {
                 ((Bobble) o).jump();
+                mScene.attachChild(new Explosion(pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), this.mExplosionFaceTextureRegion, this.getVertexBufferObjectManager(), this));
             }
             return true;
         }
@@ -220,6 +222,7 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
     public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
         if (pSceneTouchEvent.isActionDown()) {
             krawoomWorld.explosion(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+            mScene.attachChild(new Explosion(pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), this.mExplosionFaceTextureRegion, this.getVertexBufferObjectManager(), this));
 
             return true;
         }
@@ -229,7 +232,6 @@ public class GameActivity extends SimpleBaseGameActivity implements IAcceleratio
 
     @Override
     public void onAccelerationAccuracyChanged(final AccelerationData pAccelerationData) {
-
     }
 
     @Override
